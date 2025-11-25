@@ -120,6 +120,24 @@ const CreateBlog = (b, id) => {
     blogContainer.prepend(card);
 }
 
+const PatchData = (obj) =>{
+
+    title.value = obj.title;
+    content.value = obj.content;
+    userId.value = obj.userId;
+
+    submitBtn.classList.add("d-none");
+    updateBtn.classList.remove("d-none");
+} 
+
+const UIUpdate = (obj) =>{
+
+    let card = document.getElementById(obj.id);
+
+    card.querySelector(".card-header h5").innerText = obj.title;
+    card.querySelector(".card-body p").innerText = obj.content;
+}
+
 const FetchData = () => {
 
     MakeAPICall(PostURL, "GET", null)
@@ -136,6 +154,38 @@ const FetchData = () => {
 }
 
 FetchData();
+
+const onEdit = (ele) =>{
+
+  let EDIT_ID = ele.closest(".card").id;
+
+  let EDIT_URL = `${baseURL}/blogs/${EDIT_ID}.json`;
+
+  localStorage.setItem("EDIT_ID",EDIT_ID);
+
+  MakeAPICall(EDIT_URL,"GET",null)
+  .then(res => PatchData(res))
+  .finally(()=>spinner.classList.add("d-none"));
+} 
+
+const onUpdate = () =>{
+    let UPDATE_ID = localStorage.getItem("EDIT_ID");
+    
+    let UPDATE_URL = `${baseURL}/blogs/${UPDATE_ID}.json`;
+
+    let UPDATE_OBJ = {
+     
+         title: title.value,
+        content: content.value,
+        userId: userId.value,
+        id : UPDATE_ID
+        
+    }
+
+    MakeAPICall(UPDATE_URL,"PATCH",UPDATE_OBJ)
+    .then(res => UIUpdate(res))
+    .finally(()=> spinner.classList.add("d-none"));
+}
 
 const onSubmit = (eve) => {
 
@@ -154,3 +204,4 @@ const onSubmit = (eve) => {
 }
 
 blogForm.addEventListener("submit", onSubmit);
+updateBtn.addEventListener("click",onUpdate);
