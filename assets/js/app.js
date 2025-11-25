@@ -1,4 +1,5 @@
 
+
 const cl = console.log;
 
 const blogForm = document.getElementById("blogForm");
@@ -95,6 +96,30 @@ const Templating = (arr) => {
     blogContainer.innerHTML = res;
 }
 
+const CreateBlog = (b, id) => {
+
+    let card = document.createElement("div");
+
+    card.id = id;
+    card.className = "card mb-4";
+    card.innerHTML = `
+         
+                        <div class="card-header">
+                            <h5>${b.title}</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>${b.content}</p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between">
+                            <button class="btn btn-sm btn-success" onclick = "onEdit(this)">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick = "onRemove(this)">Remove</button>
+                        </div>
+        
+    `;
+
+    blogContainer.prepend(card);
+}
+
 const FetchData = () => {
 
     MakeAPICall(PostURL, "GET", null)
@@ -111,3 +136,21 @@ const FetchData = () => {
 }
 
 FetchData();
+
+const onSubmit = (eve) => {
+
+    eve.preventDefault();
+
+    let blogObj = {
+
+        title: title.value,
+        content: content.value,
+        userId: userId.value
+    }
+
+    MakeAPICall(PostURL, "POST", blogObj)
+        .then(res => CreateBlog(blogObj,res.name))
+        .finally(() => spinner.classList.add("d-none"));
+}
+
+blogForm.addEventListener("submit", onSubmit);
