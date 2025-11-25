@@ -118,9 +118,11 @@ const CreateBlog = (b, id) => {
     `;
 
     blogContainer.prepend(card);
+    blogForm.reset();
+
 }
 
-const PatchData = (obj) =>{
+const PatchData = (obj) => {
 
     title.value = obj.title;
     content.value = obj.content;
@@ -128,14 +130,19 @@ const PatchData = (obj) =>{
 
     submitBtn.classList.add("d-none");
     updateBtn.classList.remove("d-none");
-} 
+}
 
-const UIUpdate = (obj) =>{
+const UIUpdate = (obj) => {
 
     let card = document.getElementById(obj.id);
 
     card.querySelector(".card-header h5").innerText = obj.title;
     card.querySelector(".card-body p").innerText = obj.content;
+    
+    blogForm.reset();
+    submitBtn.classList.remove("d-none");
+    updateBtn.classList.add("d-none");
+
 }
 
 const FetchData = () => {
@@ -155,36 +162,60 @@ const FetchData = () => {
 
 FetchData();
 
-const onEdit = (ele) =>{
+const onEdit = (ele) => {
 
-  let EDIT_ID = ele.closest(".card").id;
+    let EDIT_ID = ele.closest(".card").id;
 
-  let EDIT_URL = `${baseURL}/blogs/${EDIT_ID}.json`;
+    let EDIT_URL = `${baseURL}/blogs/${EDIT_ID}.json`;
 
-  localStorage.setItem("EDIT_ID",EDIT_ID);
+    localStorage.setItem("EDIT_ID", EDIT_ID);
 
-  MakeAPICall(EDIT_URL,"GET",null)
-  .then(res => PatchData(res))
-  .finally(()=>spinner.classList.add("d-none"));
-} 
+    MakeAPICall(EDIT_URL, "GET", null)
+        .then(res => PatchData(res))
+        .finally(() => spinner.classList.add("d-none"));
 
-const onUpdate = () =>{
+}
+
+const onUpdate = () => {
     let UPDATE_ID = localStorage.getItem("EDIT_ID");
-    
+
     let UPDATE_URL = `${baseURL}/blogs/${UPDATE_ID}.json`;
 
     let UPDATE_OBJ = {
-     
-         title: title.value,
+
+        title: title.value,
         content: content.value,
         userId: userId.value,
-        id : UPDATE_ID
-        
+        id: UPDATE_ID
+
     }
 
-    MakeAPICall(UPDATE_URL,"PATCH",UPDATE_OBJ)
-    .then(res => UIUpdate(res))
-    .finally(()=> spinner.classList.add("d-none"));
+    MakeAPICall(UPDATE_URL, "PATCH", UPDATE_OBJ)
+        .then(res => UIUpdate(res))
+        .finally(() => spinner.classList.add("d-none"));
+    SnackBar("success", "Blog Updated Successfully");
+}
+
+const onRemove = (ele) => {
+
+    Swal.fire({
+        title: "Do you want to Remove Blog ?",
+        showCancelButton: true,
+        confirmButtonText: "Remove",
+    }).then((result) => {
+        if (result.isConfirmed) {
+
+            let REMOVE_ID = ele.closest(".card").id;
+
+            let REMOVE_URL = `${baseURL}/blogs/${REMOVE_ID}.json`;
+
+            MakeAPICall(REMOVE_URL, "DELETE", null)
+                .then(res => ele.closest(".card").remove())
+                .finally(() => spinner.classList.add("d-none"));
+            SnackBar("success", "Blog Removed Successfully");
+        }
+    });
+
 }
 
 const onSubmit = (eve) => {
@@ -199,9 +230,10 @@ const onSubmit = (eve) => {
     }
 
     MakeAPICall(PostURL, "POST", blogObj)
-        .then(res => CreateBlog(blogObj,res.name))
+        .then(res => CreateBlog(blogObj, res.name))
         .finally(() => spinner.classList.add("d-none"));
+    SnackBar("success", "Blog Added Successfully");
 }
 
 blogForm.addEventListener("submit", onSubmit);
-updateBtn.addEventListener("click",onUpdate);
+updateBtn.addEventListener("click", onUpdate);
